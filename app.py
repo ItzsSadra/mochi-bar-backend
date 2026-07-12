@@ -53,7 +53,6 @@ class Config:
 # ---------------------------------------------------------------------------
 
 _supabase_client: Client | None = None
-SUPABASE_BUCKET = "images"
 
 
 def get_supabase() -> Client:
@@ -70,21 +69,22 @@ def get_supabase() -> Client:
 def upload_to_storage(folder: str, filename: str, data: bytes, content_type: str) -> str:
     path = f"{folder}/{filename}"
     supabase = get_supabase()
-    supabase.storage.from_(SUPABASE_BUCKET).upload(
+    bucket = Config.SUPABASE_BUCKET
+    supabase.storage.from_(bucket).upload(
         path, data, {"content-type": content_type, "cache-control": "3600"},
     )
-    return supabase.storage.from_(SUPABASE_BUCKET).get_public_url(path)
+    return supabase.storage.from_(bucket).get_public_url(path)
 
 
 def delete_from_storage(path: str) -> None:
     try:
-        get_supabase().storage.from_(SUPABASE_BUCKET).remove([path])
+        get_supabase().storage.from_(Config.SUPABASE_BUCKET).remove([path])
     except Exception:
         logging.getLogger(__name__).warning("Failed to delete from Supabase: %s", path, exc_info=True)
 
 
 def extract_storage_path(file_path: str) -> str | None:
-    prefix = f"/storage/v1/object/public/{SUPABASE_BUCKET}/"
+    prefix = f"/storage/v1/object/public/{Config.SUPABASE_BUCKET}/"
     if prefix in file_path:
         return file_path.split(prefix, 1)[1]
     return None
@@ -276,7 +276,7 @@ DEFAULT_SETTINGS = [
     ("instagram", "@mochi_cafe", "contact"),
     ("telegram", "@mochi_cafe", "contact"),
     ("working_hours", "هر روز ۸ صبح تا ۱۱ شب", "contact"),
-    ("about_text", "موچی بار با الهام از هنر و فرهنگ ژاپنی، فضایی آرام و متفاوت برای لحظات شما خلق کرده است.", "about"),
+    ("about_text", "موچی بار با الهام از هنر و فرهنگ ژاپنی، فضایی آرام و متفاوت برای لحظات شما خلق کرده است. ما با استفاده از بهترین مواد اولیه و تکنیک‌های نوین، نوشیدنی‌ها و دسرهایی منحصربه‌فرد ارائه می‌دهیم.", "about"),
     ("hero_text", "لذت طعم اصیل ژاپنی", "hero"),
     ("hero_subtext", "موچی، بستنی، نوشیدنی و دسرهای دست‌ساز با کیفیت بی‌نظیر", "hero"),
     ("footer_text", "© ۱۴۰۵ موچی بار. تمامی حقوق محفوظ است.", "footer"),
@@ -294,19 +294,7 @@ DEFAULT_CATEGORIES = [
     {"name": "ویژه", "slug": "special", "icon": "⭐", "sort_order": 6},
 ]
 
-DEFAULT_MENU_ITEMS = [
-    {"name": "موچی شکلاتی", "description": "موچی دست‌ساز با روکش شکلات بلژیکی", "price": 85000, "category_slug": "mochi", "is_featured": True, "is_new": False, "ingredients": "شکلات، برنج چسبناک، بستنی وانیل", "preparation_time": 5},
-    {"name": "موچی Matcha", "description": "موچی سنتی با طعم ماچا اصل ژاپن", "price": 95000, "category_slug": "mochi", "is_featured": True, "is_new": True, "ingredients": "پودر ماچا، برنج چسبناک، شکر", "preparation_time": 5},
-    {"name": "موچی توت‌فرنگی", "description": "موچی نرم با مغز کرم توت‌فرنگی", "price": 80000, "category_slug": "mochi", "is_featured": False, "is_new": False, "ingredients": "توت‌فرنگی، برنج چسبناک، خامه", "preparation_time": 5},
-    {"name": "لاتته ماچا", "description": "لاتته با پودر ماچا و شیر بادام", "price": 75000, "category_slug": "hot-drinks", "is_featured": True, "is_new": False, "ingredients": "ماچا، شیر بادام، عسل", "preparation_time": 7},
-    {"name": "کاپوچینو ویژه", "description": "کاپوچینو با قهوه تک‌خاستگاه", "price": 65000, "category_slug": "hot-drinks", "is_featured": False, "is_new": False, "ingredients": "اسپرسو، شیر، کف شیر", "preparation_time": 5},
-    {"name": "matcha Latte سرد", "description": "لاتته ماچا سرد با یخ و شیر نارگیل", "price": 80000, "category_slug": "cold-drinks", "is_featured": True, "is_new": True, "ingredients": "ماچا، شیر نارگیل، یخ، عسل", "preparation_time": 5},
-    {"name": "اسموتی آناناس و نعناع", "description": "اسموتی تازه با آناناس و نعناع", "price": 70000, "category_slug": "cold-drinks", "is_featured": False, "is_new": False, "ingredients": "آناناس، نعناع، یخ، عسل", "preparation_time": 5},
-    {"name": "کیک رولت ماچا", "description": "رولت کیک با کرم ماچا و توت‌فرنگی", "price": 90000, "category_slug": "cake", "is_featured": True, "is_new": False, "ingredients": "آرد، ماچا، توت‌فرنگی، خامه", "preparation_time": 10},
-    {"name": "دسر matcha Panna Cotta", "description": "پاناکوتا ماچا با سس توت‌فرنگی", "price": 85000, "category_slug": "dessert", "is_featured": False, "is_new": True, "ingredients": "خامه، ماچا، ژلاتین، توت‌فرنگی", "preparation_time": 10},
-    {"name": "بستنی موچی سفارشی", "description": "بستنی دست‌ساز با روکش موچی", "price": 75000, "category_slug": "ice-cream", "is_featured": False, "is_new": False, "ingredients": "بستنی دست‌ساز، برنج چسبناک", "preparation_time": 8},
-    {"name": "ست ویژه موچی و چای", "description": "مجموعه ۴ عدد موچی همراه چای ماچا", "price": 150000, "category_slug": "special", "is_featured": True, "is_new": True, "ingredients": "موچی متنوع، چای ماچا، عسل", "preparation_time": 10},
-]
+DEFAULT_MENU_ITEMS = []
 
 _seeded = False
 
@@ -811,7 +799,7 @@ def create_app():
         supabase_url = app.config.get("SUPABASE_URL")
         if supabase_url:
             try:
-                url = get_supabase().storage.from_(SUPABASE_BUCKET).get_public_url(f"{folder}/{filename}")
+                url = get_supabase().storage.from_(Config.SUPABASE_BUCKET).get_public_url(f"{folder}/{filename}")
                 return redirect(url, code=302)
             except Exception:
                 pass
@@ -828,7 +816,8 @@ def create_app():
         if folder:
             query = query.filter_by(folder=folder)
         if search:
-            query = query.filter(db.or_(Media.original_name.ilike(f"%{search}%"), Media.alt_text.ilike(f"%{search}%")))
+            safe = _escape_like(search)
+            query = query.filter(db.or_(Media.original_name.ilike(f"%{safe}%"), Media.alt_text.ilike(f"%{safe}%")))
         return jsonify({"media": [m.to_dict() for m in query.order_by(Media.id.desc()).all()]})
 
     @app.route("/api/media/<int:media_id>", methods=["PUT"])

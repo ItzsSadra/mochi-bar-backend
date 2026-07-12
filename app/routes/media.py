@@ -10,6 +10,10 @@ logger = logging.getLogger(__name__)
 media_bp = Blueprint("media", __name__)
 
 
+def _escape_like(value):
+    return value.replace("%", "\\%").replace("_", "\\_")
+
+
 @media_bp.route("/media", methods=["GET"])
 @jwt_required()
 def get_media():
@@ -21,10 +25,11 @@ def get_media():
     if folder:
         query = query.filter_by(folder=folder)
     if search:
+        safe = _escape_like(search)
         query = query.filter(
             db.or_(
-                Media.original_name.ilike(f"%{search}%"),
-                Media.alt_text.ilike(f"%{search}%"),
+                Media.original_name.ilike(f"%{safe}%"),
+                Media.alt_text.ilike(f"%{safe}%"),
             )
         )
 

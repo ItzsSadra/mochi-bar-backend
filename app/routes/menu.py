@@ -63,7 +63,7 @@ def create_menu_item():
     if not isinstance(data["price"], (int, float)) or data["price"] <= 0:
         return jsonify({"error": "قیمت باید عدد مثبت باشد"}), 400
 
-    category = Category.query.get(data["category_id"])
+    category = db.session.get(Category, data["category_id"])
     if not category:
         return jsonify({"error": "دسته‌بندی یافت نشد"}), 400
 
@@ -102,7 +102,7 @@ def update_menu_item(item_id):
             return jsonify({"error": "قیمت باید عدد مثبت باشد"}), 400
         item.price = data["price"]
     if "category_id" in data:
-        category = Category.query.get(data["category_id"])
+        category = db.session.get(Category, data["category_id"])
         if not category:
             return jsonify({"error": "دسته‌بندی یافت نشد"}), 400
         item.category_id = data["category_id"]

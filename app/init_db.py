@@ -35,19 +35,7 @@ DEFAULT_CATEGORIES = [
     {"name": "ویژه", "slug": "special", "icon": "⭐", "sort_order": 6},
 ]
 
-DEFAULT_MENU_ITEMS = [
-    {"name": "موچی شکلاتی", "description": "موچی دست‌ساز با روکش شکلات بلژیکی و مغز بستنی وانیلی", "price": 85000, "category_slug": "mochi", "is_featured": True, "is_new": False, "ingredients": "شکلات، برنج چسبناک، بستنی وانیل، شیر نارگیل", "preparation_time": 5},
-    {"name": "موچی Matcha", "description": "موچی سنتی با طعم ماچا اصل ژاپن", "price": 95000, "category_slug": "mochi", "is_featured": True, "is_new": True, "ingredients": "پودر ماچا، برنج چسبناک، شکر، لوبیای عسلی", "preparation_time": 5},
-    {"name": "موچی توت‌فرنگی", "description": "موچی نرم با مغز کرم توت‌فرنگی تازه", "price": 80000, "category_slug": "mochi", "is_featured": False, "is_new": False, "ingredients": "توت‌فرنگی، برنج چسبناک، خامه، شکر", "preparation_time": 5},
-    {"name": "لاتته ماچا", "description": "لاتته با پودر ماچا اصل ژاپن و شیر بادام", "price": 75000, "category_slug": "hot-drinks", "is_featured": True, "is_new": False, "ingredients": "ماچا، شیر بادام، عسل", "preparation_time": 7},
-    {"name": "کاپوچینو ویژه", "description": "کاپوچینو با قهوه تک‌خاستگاه و کف شیر سوئیسی", "price": 65000, "category_slug": "hot-drinks", "is_featured": False, "is_new": False, "ingredients": "اسپرسو، شیر، کف شیر", "preparation_time": 5},
-    {"name": ".matcha Latte سرد", "description": "لاتته ماچا سرد با یخ و شیر نارگیل", "price": 80000, "category_slug": "cold-drinks", "is_featured": True, "is_new": True, "ingredients": "ماچا، شیر نارگیل، یخ، عسل", "preparation_time": 5},
-    {"name": "اسموتی آناناس و نعناع", "description": "اسموتی تازه با آناناس رسیده و نعناع تازه", "price": 70000, "category_slug": "cold-drinks", "is_featured": False, "is_new": False, "ingredients": "آناناس، نعناع، یخ، عسل", "preparation_time": 5},
-    {"name": "کیک رولت ماچا", "description": "رولت کیک با کرم ماچا و توت‌فرنگی", "price": 90000, "category_slug": "cake", "is_featured": True, "is_new": False, "ingredients": "آرد، ماچا، توت‌فرنگی، خامه، تخم‌مرغ", "preparation_time": 10},
-    {"name": "دسر matcha Panna Cotta", "description": "پاناکوتا ماچا با سس توت‌فرنگی", "price": 85000, "category_slug": "dessert", "is_featured": False, "is_new": True, "ingredients": "خامه، ماچا، ژلاتین، توت‌فرنگی", "preparation_time": 10},
-    {"name": "بستنی موچی سفارشی", "description": "بستنی دست‌ساز با انتخاب ۳ طعم و روکش موچی", "price": 75000, "category_slug": "ice-cream", "is_featured": False, "is_new": False, "ingredients": "بستنی دست‌ساز، برنج چسبناک، پودینگ", "preparation_time": 8},
-    {"name": "ست ویژه موچی و چای", "description": "مجموعه ۴ عدد موچی متنوع همراه با چای ماچا", "price": 150000, "category_slug": "special", "is_featured": True, "is_new": True, "ingredients": "موچی متنوع، چای ماچا، عسل", "preparation_time": 10},
-]
+DEFAULT_MENU_ITEMS = []
 
 
 def initialize_database():
