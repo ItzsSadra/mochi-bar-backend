@@ -1,0 +1,4 @@
+.vercel
+.pytest_cache
+uploads
+.env
