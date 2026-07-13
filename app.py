@@ -66,7 +66,7 @@ def get_supabase() -> Client:
     return _supabase_client
 
 
-def upload_to_storage(folder: str, filename: str, data: bytes, content_type: str) -> str:
+def upload_to_storageq(folder: str, filename: str, data: bytes, content_type: str) -> str:
     path = f"{folder}/{filename}"
     supabase = get_supabase()
     bucket = Config.SUPABASE_BUCKET
