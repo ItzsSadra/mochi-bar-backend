@@ -144,14 +144,14 @@ class Category(db.Model):
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=utcnow, onupdate=utcnow)
-    menu_items = db.relationship("MenuItem", backref="category", lazy="dynamic")
+    menu_items = db.relationship("MenuItem", backref="category", lazy="select")
 
     def to_dict(self):
         return {
             "id": self.id, "name": self.name, "slug": self.slug,
             "description": self.description, "icon": self.icon,
             "sort_order": self.sort_order, "is_active": self.is_active,
-            "item_count": self.menu_items.count(),
+            "item_count": len(self.menu_items) if self.menu_items else 0,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
@@ -173,7 +173,7 @@ class MenuItem(db.Model):
     sort_order = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=utcnow, onupdate=utcnow)
-    gallery_images = db.relationship("MenuGalleryImage", backref="menu_item", lazy="dynamic", cascade="all, delete-orphan")
+    gallery_images = db.relationship("MenuGalleryImage", backref="menu_item", lazy="select", cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
@@ -358,6 +358,26 @@ def _escape_like(value):
     return value.replace("%", "\\%").replace("_", "\\_")
 
 
+# Simple in-memory rate limiter
+_login_attempts: dict[str, list[float]] = {}
+RATE_LIMIT_WINDOW = 300  # 5 minutes
+RATE_LIMIT_MAX = 10     # max attempts per window
+
+
+def _check_rate_limit(ip: str) -> bool:
+    now = datetime.now(timezone.utc).timestamp()
+    cutoff = now - RATE_LIMIT_WINDOW
+    attempts = _login_attempts.get(ip, [])
+    attempts = [t for t in attempts if t > cutoff]
+    _login_attempts[ip] = attempts
+    return len(attempts) < RATE_LIMIT_MAX
+
+
+def _record_login_attempt(ip: str) -> None:
+    now = datetime.now(timezone.utc).timestamp()
+    _login_attempts.setdefault(ip, []).append(now)
+
+
 # ---------------------------------------------------------------------------
 # App factory
 # ---------------------------------------------------------------------------
@@ -423,14 +443,19 @@ def create_app():
 
     @app.route("/api/login", methods=["POST"])
     def login():
+        ip = request.remote_addr or "unknown"
+        if not _check_rate_limit(ip):
+            return jsonify({"error": "تعداد تلاش‌ها بیش از حد مجاز است. لطفاً چند دقیقه صبر کنید"}), 429
         data = request.get_json()
         if not data or not data.get("username") or not data.get("password"):
             return jsonify({"error": "نام کاربری و رمز عبور الزامی است"}), 400
         user = User.query.filter_by(username=data["username"]).first()
         if not user or not user.check_password(data["password"]):
+            _record_login_attempt(ip)
             return jsonify({"error": "نام کاربری یا رمز عبور اشتباه است"}), 401
         if not user.is_active:
             return jsonify({"error": "حساب کاربری غیرفعال است"}), 403
+        _login_attempts.pop(ip, None)
         token = create_access_token(identity=str(user.id), expires_delta=timedelta(hours=24))
         return jsonify({"token": token, "user": user.to_dict()})
 
@@ -533,7 +558,7 @@ def create_app():
         search = request.args.get("search")
         featured = request.args.get("featured")
         new = request.args.get("new")
-        query = MenuItem.query
+        query = MenuItem.query.options(db.joinedload(MenuItem.category), db.joinedload(MenuItem.gallery_images))
         if category:
             query = query.join(MenuItem.category).filter(
                 db.or_(MenuItem.category.has(slug=category), MenuItem.category.has(name=category))
@@ -850,6 +875,37 @@ def create_app():
     def get_folders():
         folders = db.session.query(Media.folder).distinct().all()
         return jsonify({"folders": [f[0] for f in folders]})
+
+    # ---- Contact form ----
+
+    @app.route("/api/contact", methods=["POST"])
+    def submit_contact():
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "داده‌ای ارسال نشد"}), 400
+        name = (data.get("name") or "").strip()
+        message = (data.get("message") or "").strip()
+        if not name or not message:
+            return jsonify({"error": "نام و پیام الزامی است"}), 400
+        if len(name) > 120:
+            return jsonify({"error": "نام بیش از حد طولانی است"}), 400
+        if len(message) > 2000:
+            return jsonify({"error": "پیام بیش از حد طولانی است"}), 400
+        logging.getLogger(__name__).info(
+            "Contact form submission: name=%s, phone=%s, message=%s",
+            name, data.get("phone", ""), message[:100],
+        )
+        return jsonify({"message": "پیام شما با موفقیت دریافت شد"}), 201
+
+    # ---- Health check ----
+
+    @app.route("/api/health", methods=["GET"])
+    def health_check():
+        try:
+            db.session.execute(db.text("SELECT 1"))
+            return jsonify({"status": "ok", "database": "connected"})
+        except Exception:
+            return jsonify({"status": "degraded", "database": "disconnected"}), 503
 
     return app
 

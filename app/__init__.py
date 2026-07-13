@@ -63,6 +63,8 @@ def create_app():
     from app.routes.dashboard import dashboard_bp
     from app.routes.upload import upload_bp
     from app.routes.media import media_bp
+    from app.routes.contact import contact_bp
+    from app.routes.health import health_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api")
     app.register_blueprint(menu_bp, url_prefix="/api")
@@ -72,5 +74,7 @@ def create_app():
     app.register_blueprint(dashboard_bp, url_prefix="/api")
     app.register_blueprint(upload_bp, url_prefix="/api")
     app.register_blueprint(media_bp, url_prefix="/api")
+    app.register_blueprint(contact_bp, url_prefix="/api")
+    app.register_blueprint(health_bp, url_prefix="/api")
 
     return app
